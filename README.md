@@ -6,6 +6,23 @@ A farmer photographs a sick rice plant. Field Doctor checks the photo, describes
 
 > Built for [#BuildHybridAI 2026](https://firebasehybridaihackathon.devpost.com/). Platform: **Web (Chrome)**, installable PWA.
 
+| Field result on device | Cloud expert with located lesions | Extension station |
+|---|---|---|
+| ![On-device result](docs/screenshots/03-on-device-result.png) | ![Expert result](docs/screenshots/04-expert-result.png) | ![Station](docs/screenshots/08-station.png) |
+
+<sub>Screenshots from the automated test run with synthetic photos.</sub>
+
+## Features
+
+- **Guided capture** with instant, offline blur and exposure checks.
+- **On-device first look**: Gemini Nano describes symptoms and votes three times on a closed list. Curated first steps are shown at once.
+- **Cascade router** with explainable escalation reasons, tunable in Remote Config.
+- **Cloud expert**: differential diagnosis, lesion boxes on the photos, an IPM plan, and grounded current advisories.
+- **Works offline**: an installable PWA with an on-device or checklist answer. The expert step is queued and runs automatically when signal returns.
+- **Extension station**: an anonymous outbreak map, a free on-device re-check on the officer's laptop, and officer verdicts sent back to farmers.
+- **Evaluation page**: hybrid cascade vs on-device only vs cloud only on labelled photos, with CSV export.
+- **Two crop modules** (rice, durian) and a Vietnamese / English UI.
+
 ## Why hybrid, concretely
 
 Most farmers' phones cannot run an on-device model, while many extension officers have laptops that can. Field Doctor is designed around that reality instead of assuming every device is a flagship.
@@ -62,7 +79,12 @@ The router escalates when any of these hold, with thresholds in **Remote Config*
 
 ## Crop knowledge
 
-Crops are modules ([`src/knowledge/crops`](src/knowledge/crops)): capture guide, growth stages, conditions with symptom profiles, severity and curated non-chemical first steps in Vietnamese and English. Rice ships first with blast, bacterial leaf blight, sheath blight, brown spot, brown planthopper, leaf folder, grassy/ragged stunt and golden apple snail. Adding a crop (or later livestock or shrimp) means adding one module.
+Crops are modules ([`src/knowledge/crops`](src/knowledge/crops)): capture guide, growth stages, conditions with symptom profiles, severity and curated non-chemical first steps in Vietnamese and English. Two crops ship today:
+
+- **Rice:** blast, bacterial leaf blight, sheath blight, brown spot, brown planthopper, leaf folder, grassy/ragged stunt, golden apple snail.
+- **Durian:** Phytophthora root rot and stem canker, anthracnose, leaf blight, pink disease, psyllid, fruit borer, mealybugs, algal leaf spot.
+
+Adding a crop (or later livestock or shrimp) means adding one module.
 
 Safety: first steps shown immediately are curated, never model-generated. The expert tier is instructed never to give pesticide doses or brands, only active-ingredient groups registered in Vietnam, with a pointer to the local plant protection station.
 
@@ -93,11 +115,16 @@ Check on-device availability in DevTools: `await LanguageModel.availability()`.
 Remote Config keys (all optional; defaults in [`src/lib/settings.ts`](src/lib/settings.ts)):
 `tier1_runs`, `tier1_max_images`, `escalate_confidence_below`, `escalate_margin_below`, `escalate_high_severity`, `triage_cloud_model`, `expert_cloud_model`, `enable_grounding`.
 
+## Test
+
 ```bash
-npm test          # router, rule scorer, image quality, output parsing
-npm run lint
-npm run build
+npm test            # 27 unit tests: router, rule scorer, photo quality, parsing, outbreak map, evaluation
+npm run test:e2e    # 15 end-to-end tests in Chrome (Auth emulator, simulated Gemini Nano, intercepted cloud Gemini)
+npm run emulators   # Auth, Firestore and Storage emulators; then VITE_USE_EMULATORS=true npm run dev
+npm run lint && npm run build
 ```
+
+What is real and what is simulated in the tests, the bugs they caught, and the manual pass to run before submitting: [docs/TESTING.md](docs/TESTING.md). Submission material: [docs/SUBMISSION.md](docs/SUBMISSION.md), [docs/VIDEO_SCRIPT.md](docs/VIDEO_SCRIPT.md), [docs/CHECKLIST.md](docs/CHECKLIST.md).
 
 ## Project layout
 
@@ -105,10 +132,13 @@ npm run build
 src/
   ai/          tier 1 (hybrid), expert tier, router, schemas, prompts
   capture/     photo normalisation and quality checks
-  cases/       Firestore cases, IndexedDB photo store, offline cloud queue
-  knowledge/   crop modules, symptom vocabulary, rule scorer
-  pages/ ui/   farmer and extension-station screens
+  cases/       Firestore cases, IndexedDB photo store, offline cloud queue, outbreak cells
+  eval/        evaluation runner and metrics
+  knowledge/   crop modules (rice, durian), symptom vocabulary, rule scorer
+  pages/ ui/   farmer, extension-station and evaluation screens
   i18n/        Vietnamese / English
+e2e/           Playwright scenarios, simulated Prompt API and cloud endpoint
+docs/          testing, submission text, video script, checklist, screenshots
 ```
 
 ## License
