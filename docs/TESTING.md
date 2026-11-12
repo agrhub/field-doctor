@@ -1,14 +1,17 @@
 # Testing Field Doctor
 
-Three layers of tests:
+Four layers of tests; the first three run on every push in [GitHub Actions](../.github/workflows/ci.yml).
 
 1. **Unit tests** for the pure logic.
-2. **End-to-end tests** that drive the production build in Chrome.
-3. **A manual pass** on real hardware with a real Firebase project.
+2. **Security rules tests** against the Firestore and Storage emulators.
+3. **End-to-end tests** that drive the production build in Chrome against the Auth, Firestore and Storage emulators.
+4. **A manual pass** on real hardware with a real Firebase project and real Gemini.
 
 ```bash
-npm test                    # unit tests (Vitest)
-npm run test:e2e            # end-to-end (Playwright + Chrome)
+npm test                         # unit tests (Vitest)
+npm run test:rules               # security rules (needs Java 21; downloads the emulators once)
+npm run test:e2e                 # end-to-end with the Auth emulator only
+E2E_EMULATORS=auth,firestore,storage npm run test:e2e   # end-to-end as in CI
 SCREENSHOTS=1 npm run test:e2e   # also refresh docs/screenshots
 ```
 
@@ -24,7 +27,17 @@ SCREENSHOTS=1 npm run test:e2e   # also refresh docs/screenshots
 | Outbreak map | `src/cases/outbreaks.test.ts` | anonymous ~1 km cells, worst severity, officer review overrides |
 | Evaluation | `src/eval/metrics.test.ts` | labels from folders or filename prefixes; top-1, top-3, on-device share, cloud calls; CSV escaping |
 
-## 2. End-to-end tests (15)
+## 2. Security rules tests (12)
+
+[`tests/rules`](../tests/rules) uses `@firebase/rules-unit-testing`. It covers:
+
+- owners vs other farmers vs signed-out users;
+- stations reading, listing and reviewing cases, and nothing else;
+- no client may write `stations/`;
+- a case can be listened to before its create reaches the server;
+- Storage: own folder only, JPEG only, under 5 MB, readable by the owner and stations only.
+
+## 3. End-to-end tests (15)
 
 The tests run `vite build --mode e2e` (see `.env.e2e`) in Chrome at phone size (412 × 915). What is real and what is simulated:
 
@@ -32,6 +45,7 @@ The tests run `vite build --mode e2e` (see `.env.e2e`) in Chrome at phone size (
 |---|---|
 | App code, Firebase AI Logic SDK, Firestore SDK with offline cache, service worker | **Real**, production build |
 | Firebase Auth | **Real Auth emulator** (anonymous sign-in) |
+| Firestore, Storage | **Real emulators with the security rules** in CI; locally, Firestore runs on its offline cache, which also exercises the field scenario |
 | Gemini Nano | **Simulated Chrome Prompt API** (`LanguageModel`) driven by the real SDK through `ChromeAdapter`; answers honour the `responseConstraint` schema ([`e2e/support/fakes.ts`](../e2e/support/fakes.ts)) |
 | Cloud Gemini | The SDK's real HTTPS requests to `firebasevertexai.googleapis.com` are **intercepted** and answered according to the requested JSON schema |
 | Network loss | Playwright `context.setOffline(true)`; all other Google hosts are cut off |
@@ -58,27 +72,20 @@ Scenarios:
 
 ### Bugs found by these tests and fixed
 
+- Officers could not save a verdict in production: every write carries `updatedAt`, which the station rule did not allow (rules tests).
+- Online, a freshly created case could disappear with "case not found": its listener reached the server before the create and was denied (CI end-to-end run against the Firestore emulator).
+- A late snapshot could start a second, paid expert call for the same request. Each request now has a `requestId`, and each attempt runs once (CI end-to-end run).
 - A returning user was signed in as a **new** anonymous account on every launch, so they lost their cases. Sign-in now waits for `auth.authStateReady()`.
 - The offline queue awaited Firestore server acknowledgements, so on a weak link a case could stay "analysing" and Retry did nothing. Local writes no longer wait for the server.
 - A slow photo upload (Storage retries for minutes) held the case lock and blocked the diagnosis and the Retry button. Upload and diagnosis now have separate locks, and uploads give up after 2 minutes and retry later.
 
-## 3. Not covered automatically — check by hand before submitting
+## 4. Manual pass with real Gemini — before submitting
 
-The Firestore and Storage emulators could not be downloaded in the build environment, so these were **not** exercised:
+Automated tests cannot judge real model quality, App Check in production, or the real Chrome Prompt API. Run this pass with your real Firebase project, on Chrome desktop with Gemini Nano:
 
-- server-side persistence;
-- `firestore.rules` and `storage.rules`;
-- real Gemini model quality.
-
-Run this pass with your real Firebase project, on Chrome desktop with Gemini Nano.
-
-1. `npm run emulators` (with internet access), then `VITE_USE_EMULATORS=true npm run dev`:
-   - a farmer cannot read another farmer's case;
-   - a station (`stations/{uid}` created in the emulator UI) can read and review cases;
-   - a farmer cannot write `review`.
-2. With the real project (`.env.local`):
+1. With the real project (`.env.local`):
    - on Chrome with Gemini Nano, a leaf photo shows the **⚡ On-device** badge;
    - in another browser without the Prompt API, the same flow shows **☁️ Cloud**;
    - DevTools → Network → Offline: create a case, then go online and watch it complete;
    - App Check: requests carry a valid token (debug token on localhost, reCAPTCHA Enterprise in production).
-3. Evaluation page: run your own labelled field photos through all three set-ups and paste the summary table into the submission.
+2. Evaluation page: run your own labelled field photos through all three set-ups and paste the summary table into the submission.

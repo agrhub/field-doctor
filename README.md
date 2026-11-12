@@ -1,5 +1,7 @@
 # Field Doctor · Bác sĩ Đồng ruộng
 
+[![CI](https://github.com/agrhub/field-doctor/actions/workflows/ci.yml/badge.svg)](https://github.com/agrhub/field-doctor/actions/workflows/ci.yml)
+
 **Hybrid on-device + cloud crop health assistant for Mekong Delta farmers and extension officers, built with Firebase AI Logic.**
 
 A farmer photographs a sick rice plant. Field Doctor checks the photo, describes the symptoms and gives safe first steps in seconds: on Gemini Nano when the device has it (free, private, works with no signal), or on cloud Gemini through the same SDK call when it doesn't. A cascade router decides whether that first answer is good enough. Dangerous or uncertain cases go to a larger cloud "expert" model that locates lesions on the photo and writes an IPM plan. If the farmer is offline, the case waits in a queue and completes when signal returns.
@@ -119,12 +121,13 @@ Remote Config keys (all optional; defaults in [`src/lib/settings.ts`](src/lib/se
 
 ```bash
 npm test            # 27 unit tests: router, rule scorer, photo quality, parsing, outbreak map, evaluation
-npm run test:e2e    # 15 end-to-end tests in Chrome (Auth emulator, simulated Gemini Nano, intercepted cloud Gemini)
+npm run test:rules  # 12 security rules tests (Firestore + Storage emulators)
+npm run test:e2e    # 15 end-to-end tests in Chrome (emulators, simulated Gemini Nano, intercepted cloud Gemini)
 npm run emulators   # Auth, Firestore and Storage emulators; then VITE_USE_EMULATORS=true npm run dev
 npm run lint && npm run build
 ```
 
-What is real and what is simulated in the tests, the bugs they caught, and the manual pass to run before submitting: [docs/TESTING.md](docs/TESTING.md). Submission material: [docs/SUBMISSION.md](docs/SUBMISSION.md), [docs/VIDEO_SCRIPT.md](docs/VIDEO_SCRIPT.md), [docs/CHECKLIST.md](docs/CHECKLIST.md).
+All three suites run in GitHub Actions on every push. What is real and what is simulated in the tests, the bugs they caught, and the manual pass to run before submitting: [docs/TESTING.md](docs/TESTING.md). Submission material: [docs/SUBMISSION.md](docs/SUBMISSION.md), [docs/VIDEO_SCRIPT.md](docs/VIDEO_SCRIPT.md), [docs/CHECKLIST.md](docs/CHECKLIST.md).
 
 ## Project layout
 

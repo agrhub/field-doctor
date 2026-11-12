@@ -14,6 +14,7 @@ Deadline: **Nov 30, 2026, 2:00 pm PST** (Dec 1, 05:00 Vietnam time). Aim to subm
 | Open-source license visible in the About section | ✅ | MIT (`LICENSE`) — check the About sidebar shows "MIT license" |
 | Repo shows Firebase AI Logic imported **and called** at runtime | ✅ | `firebase/ai` imports and `generateContent` calls |
 | Setup instructions in the repo | ✅ | `README.md` → Run it |
+| Tests passing | ✅ | GitHub Actions CI: unit, security rules, end-to-end with emulators |
 | Text description: Firebase AI Logic usage, features, value proposition | ✅ draft | `docs/SUBMISSION.md` (fill placeholders) |
 | Demo video ≤ 3 min, public on YouTube, English or English subtitles, shows the app running | ☐ | Script: `docs/VIDEO_SCRIPT.md` |
 | All materials in English, app free of charge | ✅ | |
@@ -36,6 +37,12 @@ Deadline: **Nov 30, 2026, 2:00 pm PST** (Dec 1, 05:00 Vietnam time). Aim to subm
 `cp .env.example .env.local`, fill it in, then `npm install` and `npm run dev`. Register the debug token printed in the console under App Check → Manage debug tokens.
 
 ### 3. Deploy
+
+There are two ways to deploy.
+
+**Option A — automatic (recommended).** Add the repository secrets listed at the top of [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml). Every push to `main` then builds and deploys Hosting and the security rules. Until the secrets exist, the Deploy workflow simply skips.
+
+**Option B — from your machine:**
 
 ```bash
 npm i -g firebase-tools

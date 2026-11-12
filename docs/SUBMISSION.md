@@ -93,18 +93,22 @@ Measured on ‹N› labelled field photos (Evaluation page):
 - **Stack:** React + TypeScript + Vite, installable PWA (Workbox), Leaflet for the outbreak map.
 - **Hybrid inference:** Firebase AI Logic. **Data:** Firestore, Storage, Auth, Remote Config, App Check.
 - **Crop modules:** plain TypeScript data, holding photo guides, growth stages, symptom profiles and curated first steps. Adding a crop, or later livestock or shrimp, is one file.
-- **Testing:**
+- **Testing** (all in GitHub Actions on every push):
   - 27 unit tests (router, rule scorer, photo quality, parsing, outbreak cells, evaluation metrics);
-  - 15 end-to-end tests in Chrome against the Auth emulator, a simulated Prompt API and an intercepted cloud endpoint. They cover offline, fallback, outage and officer flows.
+  - 12 security rules tests;
+  - 15 end-to-end tests in Chrome against the Auth, Firestore and Storage emulators, a simulated Prompt API and an intercepted cloud endpoint. They cover offline, fallback, outage and officer flows.
 
 ### Challenges we ran into
 
 - **Small models invent disease names.** We split tier 1 into "describe what you see" and "pick from this closed list", with `unknown` always allowed, and cross-check the result against deterministic rules.
 - **Phones vs laptops.** Most farmers' phones have no local model, so offline on those phones had to work without AI (the checklist). On-device AI had to earn its place where it actually exists: officers' laptops and newer phones.
-- **Offline is harder than it looks.** Our end-to-end tests caught three real bugs:
+- **Offline-first is harder than it looks.** Our tests caught six real bugs:
   - returning users got a new anonymous account;
   - Firestore writes awaited server acknowledgements on weak links;
-  - slow uploads blocked diagnoses.
+  - slow uploads blocked diagnoses;
+  - a new case's listener could beat its own create to the server and be denied;
+  - a late snapshot could trigger a duplicate cloud call;
+  - a rule that stopped officers from saving verdicts.
 - **Language.** Gemini Nano in Chrome does not support Vietnamese. Tier-1 prompts and outputs are English enums; everything the farmer reads is rendered in Vietnamese.
 
 ### Accomplishments that we're proud of
