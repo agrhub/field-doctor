@@ -1,10 +1,11 @@
+import { durian } from './crops/durian';
 import { rice } from './crops/rice';
 import type { Condition, CropModule } from './types';
 
 export * from './types';
 
 /** Registered modules. Add a new crop (or livestock / aquaculture) here. */
-export const CROPS: CropModule[] = [rice];
+export const CROPS: CropModule[] = [rice, durian];
 
 export const UNKNOWN_ID = 'unknown';
 

@@ -72,3 +72,53 @@ describe('scoreObservation', () => {
     }
   });
 });
+
+describe('durian module', () => {
+  const durian = getCrop('durian');
+
+  it('ranks Phytophthora first for oozing trunk lesions', () => {
+    const ranked = scoreObservation(durian, {
+      ...base,
+      organs: ['stem'],
+      lesionColors: ['dark_purple_black'],
+      lesionShapes: ['irregular_blotch'],
+      patterns: ['on_trunk_or_branch'],
+      signs: ['sap_ooze'],
+    });
+    expect(ranked[0].conditionId).toBe('phytophthora');
+  });
+
+  it('separates psyllids on flushes from mealybugs on fruit', () => {
+    const psyllid = scoreObservation(durian, {
+      ...base,
+      organs: ['leaf'],
+      lesionShapes: ['folded_or_rolled_leaf'],
+      patterns: ['young_shoots_or_flush'],
+      signs: ['insects', 'white_waxy_coating'],
+    });
+    expect(psyllid[0].conditionId).toBe('durian_psyllid');
+    const mealy = scoreObservation(durian, {
+      ...base,
+      organs: ['fruit'],
+      lesionColors: ['white_straw'],
+      lesionShapes: ['none'],
+      signs: ['insects', 'white_waxy_coating'],
+    });
+    expect(mealy[0].conditionId).toBe('mealybug');
+  });
+});
+
+describe('every crop module', () => {
+  it('has unique ids, a healthy entry and only known lookalikes', async () => {
+    const { CROPS } = await import('./index');
+    for (const crop of CROPS) {
+      const ids = crop.conditions.map((c) => c.id);
+      expect(new Set(ids).size).toBe(ids.length);
+      expect(ids).toContain('healthy');
+      for (const c of crop.conditions) {
+        for (const l of c.lookalikes) expect(ids).toContain(l);
+        expect(c.immediateActions.vi.length).toBe(c.immediateActions.en.length);
+      }
+    }
+  });
+});

@@ -12,6 +12,7 @@ export const LESION_COLORS = [
   'white_straw',
   'dark_purple_black',
   'water_soaked_green_grey',
+  'pink',
 ] as const;
 export const LESION_SHAPES = [
   'none',
@@ -23,6 +24,7 @@ export const LESION_SHAPES = [
   'folded_or_rolled_leaf',
   'twisted_or_ragged_leaf',
   'cut_or_missing_tissue',
+  'sunken_dark_spots',
 ] as const;
 export const PATTERNS = [
   'scattered_spots',
@@ -30,9 +32,20 @@ export const PATTERNS = [
   'near_water_line_or_base',
   'circular_patches_in_field',
   'whole_plant_discolored_or_stunted',
+  'young_shoots_or_flush',
+  'on_trunk_or_branch',
   'uniform_healthy',
 ] as const;
-export const SIGNS = ['insects', 'egg_masses', 'snails', 'webbing_or_frass', 'fungal_growth'] as const;
+export const SIGNS = [
+  'insects',
+  'egg_masses',
+  'snails',
+  'webbing_or_frass',
+  'fungal_growth',
+  'sap_ooze',
+  'white_waxy_coating',
+  'bore_holes',
+] as const;
 
 export type Organ = (typeof ORGANS)[number];
 export type LesionColor = (typeof LESION_COLORS)[number];
