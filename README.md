@@ -127,7 +127,7 @@ npm run emulators   # Auth, Firestore and Storage emulators; then VITE_USE_EMULA
 npm run lint && npm run build
 ```
 
-All three suites run in GitHub Actions on every push. What is real and what is simulated in the tests, the bugs they caught, and the manual pass to run before submitting: [docs/TESTING.md](docs/TESTING.md). Submission material: [docs/SUBMISSION.md](docs/SUBMISSION.md), [docs/VIDEO_SCRIPT.md](docs/VIDEO_SCRIPT.md), [docs/CHECKLIST.md](docs/CHECKLIST.md).
+All three suites run in GitHub Actions on every push. What is real and what is simulated in the tests, the bugs they caught, and the manual pass to run before submitting: [docs/TESTING.md](docs/TESTING.md). Contributor guide and backlog: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md). Submission material: [docs/SUBMISSION.md](docs/SUBMISSION.md), [docs/VIDEO_SCRIPT.md](docs/VIDEO_SCRIPT.md), [docs/CHECKLIST.md](docs/CHECKLIST.md).
 
 ## Project layout
 
