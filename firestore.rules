@@ -35,8 +35,9 @@ service cloud.firestore {
         && request.resource.data.ownerUid == resource.data.ownerUid
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['review']);
 
-      // Stations may only add a review and their own on-device re-check.
-      allow update: if isStation() && changedOnly(['review', 'stationCheck', 'status']);
+      // Stations may only add a review and their own on-device re-check
+      // (the app stamps every write with updatedAt).
+      allow update: if isStation() && changedOnly(['review', 'stationCheck', 'status', 'updatedAt']);
 
       allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
     }
