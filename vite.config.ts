@@ -3,6 +3,21 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  build: {
+    rolldownOptions: {
+      output: {
+        // Long-lived vendor chunks cache well across app releases.
+        codeSplitting: {
+          groups: [
+            { name: 'firebase', test: /node_modules[\\/]@?firebase/ },
+            { name: 'react', test: /node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/ },
+          ],
+        },
+      },
+    },
+    // Firebase alone is ~700 kB minified; it is cached by the service worker.
+    chunkSizeWarningLimit: 800,
+  },
   plugins: [
     react(),
     // Installable PWA whose app shell is cached, so the field app opens and
