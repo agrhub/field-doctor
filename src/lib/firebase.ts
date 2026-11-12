@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { getAI, GoogleAIBackend } from 'firebase/ai';
-import { getAuth, onAuthStateChanged, signInAnonymously, type User } from 'firebase/auth';
+import { getAuth, signInAnonymously, type User } from 'firebase/auth';
 import {
   initializeFirestore,
   persistentLocalCache,
@@ -49,23 +49,18 @@ export const db = initializeFirestore(app, {
 });
 
 export const storage = getStorage(app);
+// Give up an upload attempt after 2 minutes; the queue retries it later.
+storage.maxUploadRetryTime = 2 * 60 * 1000;
 export const auth = getAuth(app);
 export const ai = getAI(app, { backend: new GoogleAIBackend() });
 
-/** Resolves with the signed-in user, signing in anonymously on first launch. */
-export function ensureSignedIn(): Promise<User> {
-  return new Promise((resolve, reject) => {
-    const stop = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        stop();
-        resolve(user);
-      }
-    });
-    if (!auth.currentUser) {
-      signInAnonymously(auth).catch((err) => {
-        stop();
-        reject(err);
-      });
-    }
-  });
+/**
+ * Resolves with the signed-in user. Waits for the persisted session first so
+ * a returning farmer keeps the same anonymous account (and their cases);
+ * only a first launch creates a new one.
+ */
+export async function ensureSignedIn(): Promise<User> {
+  await auth.authStateReady();
+  if (auth.currentUser) return auth.currentUser;
+  return (await signInAnonymously(auth)).user;
 }

@@ -16,7 +16,7 @@ function CloudStatus({ rec }: { rec: CaseRecord }) {
   if (rec.status === 'diagnosed' || rec.status === 'reviewed') return null;
   if (rec.status === 'triaged') {
     return (
-      <button className="btn btn-secondary" onClick={() => void requestExpert(rec.id)}>
+      <button className="btn btn-secondary" onClick={() => requestExpert(rec.id).catch(console.warn)}>
         ☁️ {t('askExpert')}
       </button>
     );
@@ -27,7 +27,7 @@ function CloudStatus({ rec }: { rec: CaseRecord }) {
         <p className="error">
           {t('expertFailed')} {rec.cloud.lastError}
         </p>
-        <button className="btn btn-secondary" onClick={() => void requestExpert(rec.id)}>
+        <button className="btn btn-secondary" onClick={() => requestExpert(rec.id).catch(console.warn)}>
           {t('retry')}
         </button>
       </section>

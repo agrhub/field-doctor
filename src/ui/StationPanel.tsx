@@ -32,7 +32,10 @@ export function StationPanel({ rec, crop, photos }: { rec: CaseRecord; crop: Cro
         onStage: (s, run, total) => setBusy(s === 'observe' ? t('stageObserve') : `${t('stageClassify')} ${run}/${total}…`),
       });
       const decision = route({ crop, tier1, rules: scoreObservation(crop, tier1.observation), settings });
-      await updateCase(rec.id, { stationCheck: { byUid: user.uid, tier1, decision, at: Timestamp.now() } });
+      // Applied to the local cache at once; syncs when the laptop is online.
+      updateCase(rec.id, { stationCheck: { byUid: user.uid, tier1, decision, at: Timestamp.now() } }).catch((e: Error) =>
+        setError(e.message),
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -40,19 +43,14 @@ export function StationPanel({ rec, crop, photos }: { rec: CaseRecord; crop: Cro
     }
   }
 
-  async function saveReview() {
+  function saveReview() {
     if (!user) return;
-    setBusy(t('stageSave'));
-    try {
-      await updateCase(rec.id, {
-        status: 'reviewed',
-        review: { byUid: user.uid, conditionId: verdict, note, at: Timestamp.now() },
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setBusy(null);
-    }
+    setError(null);
+    // Applied to the local cache at once; syncs when the laptop is online.
+    updateCase(rec.id, {
+      status: 'reviewed',
+      review: { byUid: user.uid, conditionId: verdict, note, at: Timestamp.now() },
+    }).catch((e: Error) => setError(e.message));
   }
 
   return (
@@ -90,7 +88,7 @@ export function StationPanel({ rec, crop, photos }: { rec: CaseRecord; crop: Cro
           <span>{t('reviewNote')}</span>
           <textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} />
         </label>
-        <button className="btn" onClick={() => void saveReview()} disabled={!!busy}>
+        <button className="btn" onClick={saveReview} disabled={!!busy}>
           {t('saveReview')}
         </button>
       </section>
