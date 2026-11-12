@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAppState } from '../app/context';
 import { finalConditionId } from '../cases/outbreaks';
 import { watchStationCases } from '../cases/repo';
@@ -48,7 +49,12 @@ export function Station() {
   const max = counts[0]?.n ?? 1;
   return (
     <div className="page">
-      <h2>{t('navStation')}</h2>
+      <div className="card-head">
+        <h2>{t('navStation')}</h2>
+        <Link to="/eval" className="btn btn-secondary">
+          📊 {t('evalTitle')}
+        </Link>
+      </div>
       <p>{t('stationIntro')}</p>
       <DeviceCard />
       {counts.length > 0 && (

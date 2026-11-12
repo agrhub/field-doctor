@@ -538,6 +538,48 @@ progress {
   width: 100%;
 }
 
+/* Tables & evaluation */
+.row-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.table-wrap {
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.table th,
+.table td {
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.table th {
+  color: var(--muted);
+  font-weight: 600;
+}
+.row-miss td {
+  background: var(--red-bg);
+}
+.linklike {
+  background: none;
+  border: none;
+  color: var(--green-2);
+  text-decoration: underline;
+  font: inherit;
+  cursor: pointer;
+}
+details summary {
+  cursor: pointer;
+  margin-top: 0.75rem;
+}
+
 /* Outbreak map */
 .outbreak-map {
   height: 320px;
