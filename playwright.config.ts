@@ -5,13 +5,17 @@ import { defineConfig } from '@playwright/test';
  * Firebase Auth emulator, a simulated Gemini Nano (Chrome Prompt API) and a
  * simulated cloud Gemini endpoint. See docs/TESTING.md.
  */
+// Locally only the Auth emulator is required; CI also runs Firestore and Storage.
+const emulators = process.env.E2E_EMULATORS ?? 'auth';
+const readyUrl = emulators.includes('firestore') ? 'http://127.0.0.1:8080' : 'http://127.0.0.1:9099';
+
 export default defineConfig({
   testDir: 'e2e',
   timeout: 90_000,
   expect: { timeout: 15_000 },
   fullyParallel: false,
   workers: 1,
-  reporter: [['list'], ['html', { open: 'never' }]],
+  reporter: process.env.CI ? [['github'], ['list'], ['html', { open: 'never' }]] : [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: 'http://127.0.0.1:4173',
     // Phone-sized viewport: the farmer app is used in the field.
@@ -28,8 +32,8 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'npx firebase emulators:start --only auth --project demo-field-doctor',
-      url: 'http://127.0.0.1:9099',
+      command: `npx firebase emulators:start --only ${emulators} --project demo-field-doctor`,
+      url: readyUrl,
       reuseExistingServer: true,
       timeout: 120_000,
     },

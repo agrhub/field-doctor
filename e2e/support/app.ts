@@ -44,9 +44,25 @@ export async function currentUid(page: Page): Promise<string> {
   return (await code.textContent())!.trim();
 }
 
+/**
+ * Makes the current user an extension station. With the Firestore emulator
+ * running this is an admin write (clients may not write stations/); without
+ * it the app's offline cache is seeded through the test hook.
+ */
 export async function grantStation(page: Page): Promise<void> {
   const uid = await currentUid(page);
-  await page.evaluate((u) => (window as unknown as { __fieldDoctorTest: { grantStation(u: string): void } }).__fieldDoctorTest.grantStation(u), uid);
+  const url = `http://127.0.0.1:8080/v1/projects/demo-field-doctor/databases/(default)/documents/stations/${uid}`;
+  const admin = await fetch(url, {
+    method: 'PATCH',
+    headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields: { grantedBy: { stringValue: 'e2e' } } }),
+  }).catch(() => null);
+  if (!admin?.ok) {
+    await page.evaluate(
+      (u) => (window as unknown as { __fieldDoctorTest: { grantStation(u: string): void } }).__fieldDoctorTest.grantStation(u),
+      uid,
+    );
+  }
   await page.waitForTimeout(300);
   await page.reload();
 }
