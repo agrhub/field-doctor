@@ -27,8 +27,14 @@ dist-ssr
 .env
 .env.*
 !.env.example
+!.env.e2e
 
 # Firebase
 .firebase/
 firebase-debug.log*
 firestore-debug.log*
+
+# Playwright
+/test-results/
+/playwright-report/
+/dist-e2e

@@ -1,13 +1,14 @@
 import { initializeApp } from 'firebase/app';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { getAI, GoogleAIBackend } from 'firebase/ai';
-import { getAuth, signInAnonymously, type User } from 'firebase/auth';
+import { connectAuthEmulator, getAuth, signInAnonymously, type User } from 'firebase/auth';
 import {
+  connectFirestoreEmulator,
   initializeFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
 } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+import { connectStorageEmulator, getStorage } from 'firebase/storage';
 
 const env = import.meta.env;
 
@@ -53,6 +54,15 @@ export const storage = getStorage(app);
 storage.maxUploadRetryTime = 2 * 60 * 1000;
 export const auth = getAuth(app);
 export const ai = getAI(app, { backend: new GoogleAIBackend() });
+
+// Local development and automated tests against the Firebase Emulator Suite.
+export const usingEmulators = env.VITE_USE_EMULATORS === 'true';
+if (usingEmulators) {
+  const host = env.VITE_EMULATOR_HOST || '127.0.0.1';
+  connectAuthEmulator(auth, `http://${host}:9099`, { disableWarnings: true });
+  connectFirestoreEmulator(db, host, 8080);
+  connectStorageEmulator(storage, host, 9199);
+}
 
 /**
  * Resolves with the signed-in user. Waits for the persisted session first so
