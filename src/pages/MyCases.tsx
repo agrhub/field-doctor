@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppState } from '../app/context';
+import { finalConditionId } from '../cases/outbreaks';
 import { watchMyCases } from '../cases/repo';
 import type { CaseRecord } from '../cases/types';
 import { useI18n } from '../i18n';
@@ -16,7 +17,7 @@ export function CaseList({ cases }: { cases: CaseRecord[] }) {
     <ul className="case-list">
       {cases.map((c) => {
         const crop = getCrop(c.cropId);
-        const finalId = c.review?.conditionId ?? c.expert?.conditionId ?? c.decision.topConditionId;
+        const finalId = finalConditionId(c);
         return (
           <li key={c.id}>
             <Link to={`/case/${c.id}`}>

@@ -164,6 +164,15 @@ export const dict = {
   colFirstLook: { vi: 'Sơ bộ', en: 'First look' },
   colExpert: { vi: 'Chuyên gia', en: 'Expert' },
   colStatus: { vi: 'Trạng thái', en: 'Status' },
+  outbreakMap: { vi: 'Bản đồ cảnh báo dịch', en: 'Outbreak map' },
+  outbreakMapEmpty: {
+    vi: 'Chưa có ca nào chia sẻ khu vực. Nông dân bật "Chia sẻ khu vực gần đúng" khi gửi ca.',
+    en: 'No cases with a shared area yet. Farmers opt in with "Share approximate area".',
+  },
+  outbreakMapNote: {
+    vi: 'Mỗi vòng tròn là một ô ~1 km, ẩn danh; màu theo mức độ nặng nhất được báo cáo.',
+    en: 'Each circle is an anonymous ~1 km cell, coloured by the most severe condition reported.',
+  },
   outbreakSummary: { vi: 'Ca theo bệnh (100 ca gần nhất)', en: 'Cases by condition (latest 100)' },
   unknownCondition: { vi: 'Chưa xác định', en: 'Undetermined' },
   otherCondition: { vi: 'Khác', en: 'Other' },

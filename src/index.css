@@ -538,6 +538,14 @@ progress {
   width: 100%;
 }
 
+/* Outbreak map */
+.outbreak-map {
+  height: 320px;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+  z-index: 0;
+}
+
 /* Case list */
 .case-list {
   list-style: none;

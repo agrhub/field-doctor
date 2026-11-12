@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useAppState } from '../app/context';
+import { finalConditionId } from '../cases/outbreaks';
 import { watchStationCases } from '../cases/repo';
 import type { CaseRecord } from '../cases/types';
 import { useI18n } from '../i18n';
@@ -7,6 +8,9 @@ import { getCrop } from '../knowledge';
 import { useConditionName } from '../ui/format';
 import { DeviceCard } from '../ui/DeviceCard';
 import { CaseList } from './MyCases';
+
+// Leaflet is only needed by officers; keep it out of the farmer bundle.
+const OutbreakMap = lazy(() => import('../ui/OutbreakMap'));
 
 export function Station() {
   const { t } = useI18n();
@@ -22,7 +26,7 @@ export function Station() {
     const m = new Map<string, { label: string; n: number }>();
     for (const c of cases) {
       const crop = getCrop(c.cropId);
-      const id = c.review?.conditionId ?? c.expert?.conditionId ?? c.decision.topConditionId;
+      const id = finalConditionId(c);
       const key = `${crop.id}:${id}`;
       m.set(key, { label: name(crop, id, c.expert?.otherName), n: (m.get(key)?.n ?? 0) + 1 });
     }
@@ -63,6 +67,9 @@ export function Station() {
           </ul>
         </section>
       )}
+      <Suspense fallback={<section className="card outbreak-map" />}>
+        <OutbreakMap cases={cases} />
+      </Suspense>
       {error && <p className="error">{error}</p>}
       <CaseList cases={cases} />
     </div>
