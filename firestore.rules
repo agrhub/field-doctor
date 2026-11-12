@@ -1,0 +1,44 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Extension officers are granted access by creating stations/{uid}
+    // in the Firebase console. Clients can never write this collection.
+    function isStation() {
+      return signedIn() && exists(/databases/$(database)/documents/stations/$(request.auth.uid));
+    }
+
+    function changedOnly(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    match /stations/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    match /cases/{caseId} {
+      allow read: if signedIn() && (resource.data.ownerUid == request.auth.uid || isStation());
+
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && !('review' in request.resource.data);
+
+      // Owners may update their own case, but never the officer review.
+      allow update: if signedIn()
+        && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['review']);
+
+      // Stations may only add a review and their own on-device re-check.
+      allow update: if isStation() && changedOnly(['review', 'stationCheck', 'status']);
+
+      allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
+    }
+  }
+}
