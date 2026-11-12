@@ -62,6 +62,11 @@ describe('cases', () => {
     await assertFails(farmer('bob').doc('cases/alice-case').get());
   });
 
+  it('lets a signed-in user listen to a case before its create reaches the server', async () => {
+    await assertSucceeds(farmer('bob').doc('cases/not-created-yet').get());
+    await assertFails(env.unauthenticatedContext().firestore().doc('cases/not-created-yet').get());
+  });
+
   it('lets stations list all cases but not other farmers', async () => {
     await assertSucceeds(farmer('officer').collection('cases').orderBy('createdAt', 'desc').limit(10).get());
     await assertSucceeds(farmer('alice').collection('cases').where('ownerUid', '==', 'alice').get());

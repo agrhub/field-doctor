@@ -23,7 +23,12 @@ service cloud.firestore {
     }
 
     match /cases/{caseId} {
-      allow read: if signedIn() && (resource.data.ownerUid == request.auth.uid || isStation());
+      // A case is opened right after it is created offline-first, so its
+      // listener can reach the server before the create does. Reading a
+      // document that does not exist yet reveals nothing, so allow it.
+      allow get: if signedIn()
+        && (resource == null || resource.data.ownerUid == request.auth.uid || isStation());
+      allow list: if signedIn() && (resource.data.ownerUid == request.auth.uid || isStation());
 
       allow create: if signedIn()
         && request.resource.data.ownerUid == request.auth.uid

@@ -38,6 +38,8 @@ export function startCloudQueue(uid: string): () => void {
   const diagnosing = new Set<string>();
   const uploading = new Set<string>();
   const lastExpertTry = new Map<string, number>();
+  /** request × attempt pairs already started, so a late snapshot never re-runs one. */
+  const started = new Set<string>();
   const lastUploadTry = new Map<string, number>();
 
   async function upload(rec: CaseRecord, photos: Blob[]) {
@@ -91,11 +93,14 @@ export function startCloudQueue(uid: string): () => void {
     if (!navigator.onLine) return;
     const work = pendingWork(rec);
     // A fresh request (attempts reset to 0) runs at once; automatic retries back off.
+    const attemptKey = `${rec.id}:${rec.cloud.requestId ?? ''}:${rec.cloud.attempts}`;
     if (
       work.expert &&
       !diagnosing.has(rec.id) &&
+      !started.has(attemptKey) &&
       (rec.cloud.attempts === 0 || !recently(lastExpertTry, rec.id, RETRY_BACKOFF_MS))
     ) {
+      started.add(attemptKey);
       void run(diagnosing, rec, diagnose);
     }
     if (work.upload && !uploading.has(rec.id) && !recently(lastUploadTry, rec.id, RETRY_BACKOFF_MS)) {

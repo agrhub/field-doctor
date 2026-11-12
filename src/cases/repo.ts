@@ -60,7 +60,7 @@ export async function createCase(input: NewCase): Promise<string> {
     decision: input.decision,
     status,
     expert: null,
-    cloud: { attempts: 0, lastError: null },
+    cloud: { attempts: 0, lastError: null, requestId: crypto.randomUUID() },
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
@@ -77,8 +77,11 @@ export function watchCase(id: string, cb: (c: CaseRecord | null) => void): () =>
 
 export function watchMyCases(uid: string, cb: (c: CaseRecord[]) => void): () => void {
   const q = query(cases, where('ownerUid', '==', uid), orderBy('createdAt', 'desc'), limit(50));
-  return onSnapshot(q, { includeMetadataChanges: true }, (s) =>
-    cb(s.docs.map(toRecord).filter((c): c is CaseRecord => c !== null)),
+  return onSnapshot(
+    q,
+    { includeMetadataChanges: true },
+    (s) => cb(s.docs.map(toRecord).filter((c): c is CaseRecord => c !== null)),
+    (err) => console.error('Case list listener failed', err),
   );
 }
 
@@ -105,7 +108,12 @@ export function updateCase(id: string, data: Record<string, unknown>): Promise<v
 
 /** Farmer asks for a second opinion; also resets automatic retries. */
 export function requestExpert(id: string): Promise<void> {
-  return updateCase(id, { status: 'pending_cloud', 'cloud.attempts': 0, 'cloud.lastError': null });
+  return updateCase(id, {
+    status: 'pending_cloud',
+    'cloud.attempts': 0,
+    'cloud.lastError': null,
+    'cloud.requestId': crypto.randomUUID(),
+  });
 }
 
 export async function uploadPhotos(rec: CaseRecord, photos: Blob[]): Promise<string[]> {

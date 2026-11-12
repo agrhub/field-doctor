@@ -39,7 +39,12 @@ export interface CaseDoc {
   decision: RoutingDecision;
   status: CaseStatus;
   expert: ExpertResult | null;
-  cloud: { attempts: number; lastError: string | null };
+  /**
+   * Expert-tier bookkeeping. `requestId` changes on every new request
+   * (creation, "Ask the expert", "Retry") so each attempt runs exactly once
+   * even if an older snapshot arrives late.
+   */
+  cloud: { attempts: number; lastError: string | null; requestId?: string };
   review?: Review;
   stationCheck?: StationCheck;
   createdAt: Timestamp;
